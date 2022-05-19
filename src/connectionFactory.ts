@@ -10,10 +10,13 @@ export interface IRabbitMqConnectionFactory {
 export interface IRabbitMqConnectionConfig {
   host: string;
   port: number;
+  user: string;
+  password: string;
 }
 
 function isConnectionConfig(config: IRabbitMqConnectionConfig | string): config is IRabbitMqConnectionConfig {
-  if ((config as IRabbitMqConnectionConfig).host && (config as IRabbitMqConnectionConfig).port) {
+  if ((config as IRabbitMqConnectionConfig).host && (config as IRabbitMqConnectionConfig).port &&
+      (config as IRabbitMqConnectionConfig.user) && (config as IRabbitMqConnectionConfig.password)) {
     return true;
   }
 }
@@ -21,7 +24,7 @@ function isConnectionConfig(config: IRabbitMqConnectionConfig | string): config 
 export class RabbitMqConnectionFactory implements IRabbitMqConnectionFactory {
   private connection: string;
   constructor(private logger: Logger, config: IRabbitMqConnectionConfig | string) {
-    this.connection = isConnectionConfig(config) ? `amqp://${config.host}:${config.port}` : config;
+    this.connection = isConnectionConfig(config) ? `amqp://${config.user}:${config.password}@${config.host}:${config.port}` : config;
     this.logger = createChildLogger(logger, "RabbitMqConnectionFactory");
   }
 
@@ -38,7 +41,7 @@ export class RabbitMqSingletonConnectionFactory implements IRabbitMqConnectionFa
   private connection: string;
   private promise: Promise<amqp.Connection>;
   constructor(private logger: Logger, config: IRabbitMqConnectionConfig | string) {
-    this.connection = isConnectionConfig(config) ? `amqp://${config.host}:${config.port}` : config;
+    this.connection = isConnectionConfig(config) ? `amqp://${config.user}:${config.password}@${config.host}:${config.port}` : config;
   }
 
   create(): Promise<amqp.Connection> {
